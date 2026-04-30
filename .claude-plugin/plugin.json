@@ -1,0 +1,7 @@
+{
+  "name": "svg2vector",
+  "description": "Convert SVG to Android VectorDrawable. Drop-in agent-callable replacement for Android Studio's Vector Asset Studio—batch-aware, structured exit codes, ~8ms cold start, byte-identical output.",
+  "author": {
+    "name": "hellovass"
+  }
+}

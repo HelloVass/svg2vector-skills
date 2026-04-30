@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "hellovass-svg2vector",
+  "description": "hellovass's svg2vector plugin marketplace",
+  "owner": {
+    "name": "hellovass"
+  },
+  "plugins": [
+    {
+      "name": "svg2vector",
+      "description": "Convert SVG to Android VectorDrawable. Drop-in agent-callable replacement for Android Studio's Vector Asset Studio—batch-aware, structured exit codes, ~8ms cold start.",
+      "category": "development",
+      "source": "./",
+      "homepage": "https://github.com/HelloVass/svg2vector-skills"
+    }
+  ]
+}
