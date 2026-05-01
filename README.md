@@ -7,9 +7,17 @@
 
 > **English** | [中文](README_zh.md)
 
-A drop-in agent-callable replacement for Android Studio's Vector Asset Studio.
-Convert SVG to Android `VectorDrawable` XML — same algorithm Android Studio uses,
-but as a fast headless CLI you can wire into Claude, agents, scripts, or CI.
+> ### The missing SVG → VectorDrawable CLI for Android.
+
+Android Studio's **Vector Asset Studio** is GUI-only. Google's official
+`android` CLI ships with `create`, `emulator`, `sdk`, `skills`... but
+no SVG conversion. So in 2026 you still need to launch a 1 GB IDE and
+click through dialogs just to turn an icon into a drawable.
+
+**svg2vector** is the headless, agent-callable CLI that should have shipped:
+same `Svg2Vector` algorithm Android Studio uses internally, packaged as a
+~24 MB native binary with ~8 ms cold start. Wire it into Claude, agents,
+scripts, or CI.
 
 |                       | Vector Asset Studio (AS GUI) | **svg2vector**                            |
 | --------------------- | ---------------------------- | ----------------------------------------- |

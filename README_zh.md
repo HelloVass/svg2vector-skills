@@ -7,9 +7,16 @@
 
 > [English](README.md) | **中文**
 
-Android Studio Vector Asset Studio 的 agent 友好替代品。把 SVG 转成 Android
-`VectorDrawable` XML —— 用的是 Android Studio 内置的同一个算法，但是包成
-极速 headless CLI，可以接进 Claude / agent / 脚本 / CI。
+> ### Android 缺失的那个 SVG → VectorDrawable CLI
+
+Android Studio 的 **Vector Asset Studio** 只能 GUI 操作。Google 官方的
+`android` CLI 带了 `create`、`emulator`、`sdk`、`skills`...... 偏偏没带
+SVG 转换。2026 年了，你想把一张图标转成 drawable，仍然得启动 1 GB 的 IDE，
+点鼠标走对话框。
+
+**svg2vector** 就是那个本该被官方包进来、却始终没出现的 headless CLI：
+Android Studio 内部用的同一个 `Svg2Vector` 算法，封装成 ~24 MB native
+二进制，~8 ms 冷启动。可以接进 Claude / agent / 脚本 / CI。
 
 |                       | Vector Asset Studio (AS GUI) | **svg2vector**                            |
 | --------------------- | ---------------------------- | ----------------------------------------- |
