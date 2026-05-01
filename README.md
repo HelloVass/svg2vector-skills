@@ -1,77 +1,86 @@
-# svg2vector-skills
+# svg2vector
 
-> Claude Code plugin to convert SVG → Android VectorDrawable. Drop-in
-> agent-callable replacement for Android Studio's GUI-only Vector Asset Studio.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Built on Svg2Vector](https://img.shields.io/badge/built%20on-Android%20Svg2Vector-3DDC84.svg)](https://android.googlesource.com/platform/tools/base/+/refs/heads/mirror-goog-studio-main/sdk-common/src/main/java/com/android/ide/common/vectordrawable/Svg2Vector.java)
+[![Native binary](https://img.shields.io/badge/native%20binary-~24.6%20MB-blue.svg)](#install)
+[![Cold start](https://img.shields.io/badge/cold%20start-~8ms-blue.svg)](#install)
 
-| | Vector Asset Studio (AS GUI) | **svg2vector** |
-|---|---|---|
-| 调用方式 | 鼠标点击 | CLI / Claude / agent / CI |
-| 批量 | ✗ 一个一个拖 | ✓ `batch -r` 一键整个目录 |
-| 退出码 | ✗ | ✓ 0 / 1 / 2 / 3 结构化契约 |
-| stdout/stderr 分流 | ✗ | ✓ stdout 只发成功，stderr 只发错误/警告 |
-| 冷启动 | 启动 IDE 几秒 | **~8ms**（macOS arm64 native 二进制） |
-| 输出 | Svg2Vector 算法 | **同一份算法**，byte-identical |
+> **English** | [中文](README_zh.md)
 
-底层封装的是 Android 官方 `com.android.ide.common.vectordrawable.Svg2Vector`
-（`com.android.tools:sdk-common`）—— Vector Asset Studio GUI 走的也是这个类。
-任何 GUI 能转的 SVG，svg2vector 也能转，输出字节相同。
+A drop-in agent-callable replacement for Android Studio's Vector Asset Studio.
+Convert SVG to Android `VectorDrawable` XML — same algorithm Android Studio uses,
+but as a fast headless CLI you can wire into Claude, agents, scripts, or CI.
+
+|                       | Vector Asset Studio (AS GUI) | **svg2vector**                            |
+| --------------------- | ---------------------------- | ----------------------------------------- |
+| Invocation            | Mouse clicks                 | CLI / Claude / agent / CI                 |
+| Batch                 | ✗ one file at a time         | ✓ `batch -r` for an entire directory      |
+| Exit codes            | ✗                            | ✓ structured `0` / `1` / `2` / `3`        |
+| stdout / stderr split | ✗                            | ✓ stdout = success only, stderr = warnings|
+| Cold start            | seconds (IDE startup)        | **~8 ms** (macOS arm64 native binary)     |
+| Output                | Svg2Vector algorithm         | **same algorithm**, byte-identical        |
+
+Under the hood it wraps Android's official `com.android.ide.common.vectordrawable.Svg2Vector`
+(`com.android.tools:sdk-common`) — the exact class the Vector Asset Studio GUI runs.
+Anything the GUI can convert, this CLI can convert, byte-for-byte the same.
 
 ---
 
-## 安装
+## Install
 
-### 方式 1（推荐）：Claude Code plugin
+### Option 1 — Claude Code plugin (recommended)
 
-在 Claude Code 主界面：
+In Claude Code:
 
-```text
+```
 /plugin marketplace add HelloVass/svg2vector-skills
 /plugin install svg2vector
 ```
 
-装好之后：
+Once installed:
 
-- **主动调用**：`/svg2vector convert <input.svg>` 之类的 slash command
-- **隐式触发**：直接对 Claude 说"把 ./design/svgs 下所有图标转成 vectordrawable
-  放到 app/src/main/res/drawable/"——skill 会自动激活
+- **Active**: `/svg2vector convert <input.svg>` slash command
+- **Passive**: just say `convert all SVGs under ./design/svgs into vectordrawables
+  and put them in app/src/main/res/drawable/` — the skill auto-activates.
 
-第一次使用时，slash command 会引导 Claude 装 native binary（~24 MB）：
+On first use the slash command will offer to install the native binary (~24 MB):
 
-```bash
+```sh
 curl -fsSL https://raw.githubusercontent.com/HelloVass/svg2vector-skills/main/install.sh | sh
 ```
 
-### 方式 2：纯 CLI（不走 Claude，脚本 / CI 直接用）
+### Option 2 — Plain CLI (no Claude required)
 
-```bash
+```sh
 curl -fsSL https://raw.githubusercontent.com/HelloVass/svg2vector-skills/main/install.sh | sh
 svg2vector --version
 ```
 
-`install.sh` 自动检测 OS / arch（macOS arm64 / x86_64 / Linux x86_64），下载对应
-binary 到 `~/.local/bin/svg2vector`。
+`install.sh` auto-detects OS and arch (`darwin-arm64` / `darwin-x86_64` /
+`linux-x86_64`), pulls the matching native binary from GitHub Releases, and
+drops it at `~/.local/bin/svg2vector`.
 
 ---
 
-## 使用
+## Usage
 
-### 转换单个文件
+### Convert a single file
 
-```bash
-svg2vector convert input.svg                  # 旁边生成同名 .xml
-svg2vector convert input.svg -o out/icon.xml  # 指定输出
+```sh
+svg2vector convert input.svg                  # writes input.xml beside it
+svg2vector convert input.svg -o out/icon.xml  # explicit output path
 ```
 
-### 批量转换整个目录
+### Convert a whole directory
 
-```bash
+```sh
 svg2vector batch ./svgs ./drawable
-svg2vector batch ./svgs ./drawable -r         # 递归子目录
+svg2vector batch ./svgs ./drawable -r         # recurse into subdirectories
 ```
 
-### 帮助 / 版本
+### Help / version
 
-```bash
+```sh
 svg2vector --help
 svg2vector --version
 svg2vector convert --help
@@ -80,63 +89,68 @@ svg2vector batch --help
 
 ---
 
-## 退出码（这是这个工具的 API）
+## Exit codes (this is the API)
 
-| Code | 含义 |
-|------|------|
-| `0` | 成功，无警告 |
-| `1` | 致命错误：完全无法转换、I/O 失败 |
-| `2` | 转换成功，但部分 SVG 特性不被支持已被跳过 — XML **仍然写出** |
-| `3` | 命令行参数错误 |
+| Code | Meaning                                                                   |
+| ---- | ------------------------------------------------------------------------- |
+| `0`  | Success, no warnings                                                      |
+| `1`  | Fatal: cannot convert, or I/O error                                       |
+| `2`  | Converted **with warnings** — XML still written, some SVG features dropped|
+| `3`  | Bad CLI arguments                                                         |
 
-`batch` 模式退出码 = 所有文件中**最差**那个（`max`）。
+In `batch` mode, the process exits with the **worst** per-file code (`max`).
+A single warning anywhere in the batch surfaces as exit `2` overall.
 
-`stdout` 仅承载成功消息（`wrote <path>` / 批量摘要 `done: N ok, M warned, K failed`）。
-`stderr` 承载错误和不支持特性的警告。两者刻意分流。
+`stdout` carries success messages only (`wrote ...`, batch summary like
+`done: N ok, M warned, K failed`). `stderr` carries errors and "feature X is
+not supported" warnings. The two streams are deliberately separated so
+agents can capture them independently.
 
-### Agent 调用示例
+### Agent invocation pattern
 
-```bash
+```sh
 out=$(svg2vector convert icon.svg -o icon.xml 2>err.log)
 rc=$?
 case $rc in
-  0) echo "干净转换: $out" ;;
-  2) echo "转出来了但有特性被跳过 (见 err.log)" ;;
-  *) echo "失败 rc=$rc (见 err.log)" ;;
+  0) echo "clean: $out" ;;
+  2) echo "converted with dropped features (see err.log)" ;;
+  *) echo "failed rc=$rc (see err.log)" ;;
 esac
 ```
 
 ---
 
-## 支持的 SVG 特性
+## Supported SVG features
 
-`Svg2Vector` 支持：`path` / `rect` / `circle` / `ellipse` / `line` / `polygon` /
-`polyline` / `g`（transform 烘焙进 path） / 基础 `fill` / `stroke` / `opacity` /
-`linearGradient` / `radialGradient` / `clipPath`。
+Supported: `path` / `rect` / `circle` / `ellipse` / `line` / `polygon` /
+`polyline` / `g` (transforms baked into paths) / basic `fill` / `stroke` /
+`opacity` / `linearGradient` / `radialGradient` / `clipPath`.
 
-**静默跳过（exit 2 + stderr 警告）**：`text` / `filter` / `mask` / `pattern` /
-`image` / 外部资源的 `<use>` / CSS `@import` / 部分高级 gradient 特性。
+Silently dropped (exit `2` + stderr warning): `text` / `filter` / `mask` /
+`pattern` / `image` / external `<use>` / CSS `@import` / some advanced
+gradient features.
 
-### Figma 用户特别注意
+### Figma users — read this
 
-- ✅ Figma **Export 面板** 导出的 SVG（用字面量颜色）：直接喂，没问题
-- ⚠️ Figma **dev mode** (`localhost:3845/assets/...svg`) 的 SVG 含
-  `var(--token, fallback)` CSS 变量，Svg2Vector 不解析，输出会含不可用的字符串。
-  预处理：
+- ✅ SVGs from Figma's **Export panel** (literal hex colors): drop straight in.
+- ⚠️ SVGs from Figma's **Dev Mode** (`localhost:3845/assets/...svg`) embed
+  `var(--token, fallback)` CSS variables. Svg2Vector doesn't resolve those
+  — output strokes / fills become unusable strings. Pre-process:
 
-  ```bash
+  ```sh
   sed -E 's/var\(--[^,]+,\s*([^)]+)\)/\1/g' input.svg > clean.svg
   ```
 
 ---
 
-## 致谢
+## Acknowledgements
 
-- 转换算法来自 Android tooling 团队的
+- The conversion algorithm is Android tooling's
   [`Svg2Vector`](https://android.googlesource.com/platform/tools/base/+/refs/heads/mirror-goog-studio-main/sdk-common/src/main/java/com/android/ide/common/vectordrawable/Svg2Vector.java)
-  （`com.android.tools:sdk-common`）。
-- 测试 fixture 借用了 [Ashung/svg2vectordrawable](https://github.com/Ashung/svg2vectordrawable)
-  issue tracker 里的 4 个真实失败 SVG 作为回归保护——感谢上游用户多年踩坑。
+  (`com.android.tools:sdk-common`).
+- Four of the regression test fixtures are taken from the
+  [Ashung/svg2vectordrawable](https://github.com/Ashung/svg2vectordrawable) issue
+  tracker — credit to the upstream community for reporting these bugs over the years.
 
 ---
 
